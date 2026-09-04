@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Driver {
+  id        String   @id @default(cuid())
+  name      String
+  pin       String
+  active    Boolean  @default(true)
+  jobs      Job[]
+  createdAt DateTime @default(now())
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  email     String
+  notes     String?
+  jobs      Job[]
+  createdAt DateTime @default(now())
+}
+
+model Job {
+  id        String   @id @default(cuid())
+  date      DateTime
+  clientId  String
+  driverId  String?
+  stage     String   @default("scheduled")
+  client    Client   @relation(fields: [clientId], references: [id])
+  driver    Driver?  @relation(fields: [driverId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([date])
+  @@index([driverId, date])
+}
+
+model EmailTemplate {
+  id      String @id @default(cuid())
+  stage   String @unique
+  subject String
+  body    String
+}
