@@ -5,7 +5,7 @@ async function loginAdmin(formData: FormData) {
   'use server'
   const username = formData.get('username') as string
   const password = formData.get('password') as string
-  const secret = process.env.ADMIN_SECRET || 'admin123'
+  const secret = process.env.ADMIN_SECRET || '1234'
 
   if (username === 'admin' && password === secret) {
     const cookieStore = await cookies()
@@ -15,11 +15,13 @@ async function loginAdmin(formData: FormData) {
   redirect('/admin?error=invalid')
 }
 
-export default function AdminLogin({ searchParams }: { searchParams: { error?: string } }) {
+export default async function AdminLogin({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white">
       <h1 className="text-3xl font-bold mb-8">Admin Login</h1>
-      {searchParams.error && (
+      {error && (
         <p className="text-red-500 mb-4 text-xl">Invalid credentials. Try again.</p>
       )}
       <form action={loginAdmin} className="flex flex-col gap-4 w-full max-w-xs">

@@ -15,11 +15,13 @@ async function loginDriver(formData: FormData) {
   redirect('/driver?error=invalid')
 }
 
-export default function DriverLogin({ searchParams }: { searchParams: { error?: string } }) {
+export default async function DriverLogin({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white">
       <h1 className="text-3xl font-bold mb-8">Enter your PIN</h1>
-      {searchParams.error && (
+      {error && (
         <p className="text-red-500 mb-4 text-xl">Invalid PIN. Try again.</p>
       )}
       <form action={loginDriver} className="flex flex-col gap-4 w-full max-w-xs">
