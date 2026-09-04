@@ -8,8 +8,19 @@ async function addClient(formData: FormData) {
   const name = formData.get('name') as string
   const address = formData.get('address') as string
   const email = formData.get('email') as string
-  
+
   await prisma.client.create({ data: { name, address, email } })
+  redirect('/admin/clients')
+}
+
+async function updateClient(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  const name = formData.get('name') as string
+  const address = formData.get('address') as string
+  const email = formData.get('email') as string
+
+  await prisma.client.update({ where: { id }, data: { name, address, email } })
   redirect('/admin/clients')
 }
 
@@ -64,19 +75,58 @@ export default async function AdminClients() {
         </form>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {clients.map(client => (
-          <div key={client.id} className="flex justify-between items-center p-6 bg-slate-800 rounded-xl">
-            <div>
-              <div className="text-xl font-semibold">{client.name}</div>
-              <div className="text-slate-400">{client.address}</div>
-              <div className="text-slate-400 text-sm">{client.email}</div>
-            </div>
-            <form action={deleteClient}>
+          <div key={client.id} className="p-6 bg-slate-800 rounded-xl">
+            <form action={updateClient} className="flex flex-col gap-4">
               <input type="hidden" name="id" value={client.id} />
-              <button className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-lg font-semibold transition">
-                Delete
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Name</label>
+                  <input 
+                    name="name" 
+                    type="text" 
+                    defaultValue={client.name}
+                    className="w-full p-3 rounded-xl bg-slate-700 border-2 border-slate-600 focus:border-blue-500 outline-none" 
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Address</label>
+                  <input 
+                    name="address" 
+                    type="text" 
+                    defaultValue={client.address}
+                    className="w-full p-3 rounded-xl bg-slate-700 border-2 border-slate-600 focus:border-blue-500 outline-none" 
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Email</label>
+                  <input 
+                    name="email" 
+                    type="email" 
+                    defaultValue={client.email}
+                    className="w-full p-3 rounded-xl bg-slate-700 border-2 border-slate-600 focus:border-blue-500 outline-none" 
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-lg font-semibold transition">
+                  Save Changes
+                </button>
+                <button 
+                  type="submit" 
+                  form={`delete-${client.id}`}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-lg font-semibold transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </form>
+            <form id={`delete-${client.id}`} action={deleteClient}>
+              <input type="hidden" name="id" value={client.id} />
             </form>
           </div>
         ))}

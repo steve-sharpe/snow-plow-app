@@ -6,7 +6,7 @@ import Link from 'next/link'
 async function addJob(formData: FormData) {
   'use server'
   const clientId = formData.get('clientId') as string
-  const driverId = formData.get('driverId') as string
+  const driverId = (formData.get('driverId') as string) || null
   const date = formData.get('date') as string
   
   await prisma.job.create({ 
@@ -26,6 +26,15 @@ async function updateJobStage(formData: FormData) {
   const stage = formData.get('stage') as string
   
   await prisma.job.update({ where: { id }, data: { stage } })
+  redirect('/admin/jobs')
+}
+
+async function updateJobDriver(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  const driverId = (formData.get('driverId') as string) || null
+  
+  await prisma.job.update({ where: { id }, data: { driverId } })
   redirect('/admin/jobs')
 }
 
@@ -71,9 +80,8 @@ export default async function AdminJobs() {
           <select 
             name="driverId" 
             className="p-4 rounded-xl bg-slate-700 border-2 border-slate-600 focus:border-blue-500 outline-none" 
-            required
           >
-            <option value="">Select Driver</option>
+            <option value="">Unassigned</option>
             {drivers.map(driver => (
               <option key={driver.id} value={driver.id}>{driver.name}</option>
             ))}
@@ -97,16 +105,43 @@ export default async function AdminJobs() {
               <div>
                 <div className="text-xl font-semibold">{job.client.name}</div>
                 <div className="text-slate-400">{job.client.address}</div>
-                <div className="text-slate-400 text-sm mt-1">Driver: {job.driver?.name || 'Unassigned'}</div>
                 <div className="text-slate-400 text-sm">Date: {new Date(job.date).toLocaleDateString()}</div>
               </div>
-              <div className="flex gap-2">
-                <form action={updateJobStage} className="flex gap-2">
-                  <input type="hidden" name="id" value={job.id} />
+              <form action={deleteJob}>
+                <input type="hidden" name="id" value={job.id} />
+                <button className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                  Delete
+                </button>
+              </form>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form action={updateJobDriver} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm text-slate-400 mb-1">Assigned Driver</label>
+                  <select 
+                    name="driverId" 
+                    defaultValue={job.driverId ?? ''}
+                    className="w-full p-2 rounded-lg bg-slate-700 border border-slate-600 text-sm"
+                  >
+                    <option value="">Unassigned</option>
+                    {drivers.map(driver => (
+                      <option key={driver.id} value={driver.id}>{driver.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold transition">
+                  Assign
+                </button>
+              </form>
+
+              <form action={updateJobStage} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm text-slate-400 mb-1">Stage</label>
                   <select 
                     name="stage" 
                     defaultValue={job.stage}
-                    className="p-2 rounded-lg bg-slate-700 border border-slate-600 text-sm"
+                    className="w-full p-2 rounded-lg bg-slate-700 border border-slate-600 text-sm"
                   >
                     <option value="scheduled">Scheduled</option>
                     <option value="enroute">En Route</option>
@@ -114,20 +149,16 @@ export default async function AdminJobs() {
                     <option value="completed">Completed</option>
                     <option value="issue">Issue</option>
                   </select>
-                  <button type="submit" className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold transition">
-                    Update
-                  </button>
-                </form>
-                <form action={deleteJob}>
-                  <input type="hidden" name="id" value={job.id} />
-                  <button className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
-                    Delete
-                  </button>
-                </form>
-              </div>
+                </div>
+                <button type="submit" className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold transition">
+                  Update
+                </button>
+              </form>
             </div>
-            <div className="text-sm">
+
+            <div className="text-sm mt-4">
               Status: <span className="text-white font-bold uppercase">{job.stage}</span>
+              {' · '}Driver: <span className="text-white font-bold">{job.driver?.name || 'Unassigned'}</span>
             </div>
           </div>
         ))}

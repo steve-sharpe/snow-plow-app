@@ -5,9 +5,9 @@ async function loginAdmin(formData: FormData) {
   'use server'
   const username = formData.get('username') as string
   const password = formData.get('password') as string
-  
-  // Default admin credentials
-  if (username === 'admin' && password === 'admin123') {
+  const secret = process.env.ADMIN_SECRET || 'admin123'
+
+  if (username === 'admin' && password === secret) {
     const cookieStore = await cookies()
     cookieStore.set('admin_auth', 'true', { httpOnly: true, sameSite: 'lax' })
     redirect('/admin/dashboard')
@@ -40,7 +40,7 @@ export default function AdminLogin({ searchParams }: { searchParams: { error?: s
           Login
         </button>
       </form>
-      <p className="text-slate-400 mt-8 text-sm">Default: admin / admin123</p>
+      <p className="text-slate-400 mt-8 text-sm">Username: admin — Password: your ADMIN_SECRET value</p>
     </main>
   )
 }
